@@ -1,0 +1,35 @@
+{
+    "author": "Erik",
+    "dependencies": {},
+    "keywords": [],
+    "name": "weather-app",
+    "pebble": {
+        "capabilities": [
+            ""
+        ],
+        "displayName": "Weather App",
+        "enableMultiJS": true,
+        "messageKeys": [],
+        "projectType": "native",
+        "resources": {
+            "media": [
+                {
+                    "file": "images/weather_icon.png",
+                    "name": "IMAGE_SPLASH",
+                    "targetPlatforms": null,
+                    "type": "bitmap"
+                }
+            ]
+        },
+        "sdkVersion": "3",
+        "targetPlatforms": [
+            "aplite",
+            "basalt"
+        ],
+        "uuid": "71140172-00f8-4495-890a-df7b011eed4d",
+        "watchapp": {
+            "watchface": false
+        }
+    },
+    "version": "1.0.0"
+}
