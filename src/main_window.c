@@ -5,11 +5,18 @@ Window *mainWindow;
 MenuLayer *mainMenuLayer;
 
 uint16_t menu_get_num_sections_callback(MenuLayer *menu_layer, void *data) {
-  return 0;
+  return 2;
 }
 
 uint16_t menu_get_num_rows_callback(MenuLayer *menu_layer, uint16_t section_index, void *data) {
-  return 0;
+  switch (section_index) {
+    case 0:
+      return 1;
+    case 1:
+      return 1;
+    default:
+      return 0;
+  }
 }
 
 int16_t menu_get_header_height_callback(MenuLayer *menu_layer, uint16_t section_index, void *data) {
@@ -17,11 +24,29 @@ int16_t menu_get_header_height_callback(MenuLayer *menu_layer, uint16_t section_
 }
 
 void menu_draw_header_callback(GContext* ctx, const Layer *cell_layer, uint16_t section_index, void *data) {
-    
+  switch (section_index) {
+    case 0:
+      menu_cell_basic_header_draw(ctx, cell_layer, "Cities");
+      break;
+    case 1:
+      menu_cell_basic_header_draw(ctx, cell_layer, "Config");
+      break;
+  }
 }
 
 void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuIndex *cell_index, void *data) {
-    
+  switch (cell_index->section) {
+    case 0:
+      switch (cell_index->row) {
+        case 0:
+          menu_cell_basic_draw(ctx, cell_layer, "What City", "40°C", NULL); // null icon
+          break;
+      }
+      break;
+    case 1:
+      menu_cell_basic_draw(ctx, cell_layer, "Add City", NULL, NULL);
+      break;
+  }
 }
 
 void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
