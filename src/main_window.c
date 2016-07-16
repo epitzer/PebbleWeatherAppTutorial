@@ -2,20 +2,33 @@
 #include "main_window.h"
 #include "error_window.h"
 
+Window *mainWindow;
+MenuLayer *mainMenuLayer;
+
 City cities[MAX_NR_OF_CITIES];
 int currentCityToWrite = -1;
 
-Window *mainWindow;
-MenuLayer *mainMenuLayer;
 
 uint16_t menu_get_num_sections_callback(MenuLayer *menu_layer, void *data) {
   return 2;
 }
 
+uint16_t get_nr_of_cities() {
+  uint16_t nr = 0;
+  for (int i = 0; i < MAX_NR_OF_CITIES; i++) {
+    if (cities[i].exists) {
+      nr++;
+    } else {
+      break;
+    }
+  }
+  return nr;
+}
+
 uint16_t menu_get_num_rows_callback(MenuLayer *menu_layer, uint16_t section_index, void *data) {
   switch (section_index) {
     case 0:
-      return 1;
+      return get_nr_of_cities();
     case 1:
       return 1;
     default:
@@ -41,11 +54,12 @@ void menu_draw_header_callback(GContext* ctx, const Layer *cell_layer, uint16_t 
 void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuIndex *cell_index, void *data) {
   switch (cell_index->section) {
     case 0:
-      switch (cell_index->row) {
-        case 0:
-          menu_cell_basic_draw(ctx, cell_layer, "Demo City", "40°C", NULL); // null icon
-          break;
-      }
+      menu_cell_basic_draw(ctx, cell_layer, cities[cell_index->row].name[0], "nothing yet", NULL); // null icon
+//       switch (cell_index->row) {
+//         case 0:
+//           menu_cell_basic_draw(ctx, cell_layer, "Demo City", "40°C", NULL); // null icon
+//           break;
+//       }
       break;
     case 1:
       menu_cell_basic_draw(ctx, cell_layer, "Add City", NULL, NULL);
@@ -126,7 +140,17 @@ void launch_dictation() {
 
 void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
   switch (cell_index->section) {
-    case 0: break;
+    case 0:
+      for (int i = 0; i< MAX_NR_OF_CITIES-1; i++) {
+         City nonExistingCity = {
+           .exists = false
+         };
+         /* City tempCity = cities[i+1];
+         cities[i] = tempCity; */
+         cities[i] = cities[i+1];
+         cities[i+1] = nonExistingCity;
+       }
+       break;
     case 1: launch_dictation(); break;
     default:
       error_window_set_error("Unknown menu item selected");
