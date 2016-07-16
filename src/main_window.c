@@ -62,7 +62,7 @@ void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *da
     return;
   }
   
-  dict_write_uint16(iter, 10000, 1337); // key (obtained from log), value
+  dict_write_cstring(iter, MESSAGE_KEY_getWeather, "Linz, AT");
   dict_write_end(iter);
   
   app_message_outbox_send();

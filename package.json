@@ -10,7 +10,9 @@
         "displayName": "Weather App",
         "enableMultiJS": true,
         "messageKeys": [
-            "testkey"
+            "icon",
+            "temperature",
+            "getWeather"
         ],
         "projectType": "native",
         "resources": {
