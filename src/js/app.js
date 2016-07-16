@@ -148,3 +148,16 @@ Pebble.addEventListener("appmessage", function(e) {
   
   getWeatherFromLocation(e.payload.getWeather);
 });
+
+Pebble.addEventListener("showConfiguration", function(e) {
+  Pebble.openURL("https://austinsparkleague.github.io/webpage_example/");
+});
+
+Pebble.addEventListener("webviewclosed", function(e) {
+  if (e.response) {
+    console.log("Got message " + e.response);
+    var msg = decodeURIComponent(e.response);
+    console.log("which is message " + msg);
+    Pebble.sendAppMessage(JSON.parse(msg));
+  }
+});

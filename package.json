@@ -5,7 +5,7 @@
     "name": "weather-app",
     "pebble": {
         "capabilities": [
-            ""
+            "configurable"
         ],
         "displayName": "Weather App",
         "enableMultiJS": true,
@@ -14,7 +14,9 @@
             "temperature",
             "getWeather",
             "cityid",
-            "cityname"
+            "cityname",
+            "boolean_box",
+            "color_picker"
         ],
         "projectType": "native",
         "resources": {

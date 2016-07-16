@@ -195,6 +195,10 @@ void process_tuple(Tuple *t){
     strncpy(currentCityToWrite.name[0],
             t->value->cstring,
             sizeof(currentCityToWrite.name[0]));
+    
+  } else if (key == MESSAGE_KEY_color_picker) {
+    GColor color = GColorFromHEX(t->value->int32);
+    menu_layer_set_highlight_colors(mainMenuLayer, color, gcolor_legible_over(color));
   }
   APP_LOG(APP_LOG_LEVEL_INFO, "Got key %d with value %d", (int)key, value);
 }
