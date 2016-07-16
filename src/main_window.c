@@ -8,7 +8,6 @@ MenuLayer *mainMenuLayer;
 City cities[MAX_NR_OF_CITIES];
 int currentCityToWrite = -1;
 
-
 uint16_t menu_get_num_sections_callback(MenuLayer *menu_layer, void *data) {
   return 2;
 }
@@ -150,6 +149,7 @@ void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *da
          cities[i] = cities[i+1];
          cities[i+1] = nonExistingCity;
        }
+       menu_layer_reload_data(mainMenuLayer);
        break;
     case 1: launch_dictation(); break;
     default:
@@ -195,6 +195,7 @@ void message_inbox(DictionaryIterator *iter, void *context){
   }
   
   cities[currentCityToWrite].exists = true;
+  menu_layer_reload_data(mainMenuLayer);
 }
 
 void message_inbox_dropped(AppMessageResult reason, void *context) {
