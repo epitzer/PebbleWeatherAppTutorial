@@ -7,7 +7,18 @@ void launch_main_window(void *data) {
   window_stack_push(main_window_get_window(), true); // animated
 }
 
+void log_mem(const char *message) {
+  size_t free_mem = heap_bytes_free();
+  size_t used_mem = heap_bytes_used();
+  APP_LOG(APP_LOG_LEVEL_INFO,
+          "%s: %u bytes free, %u bytes used",
+          message,
+          (unsigned int)free_mem,
+          (unsigned int)used_mem);
+}
+
 int main() {
+  log_mem("app started");
   main_window_load_cities();
   
   splash_window_create();
@@ -22,5 +33,5 @@ int main() {
   main_window_destroy();
   error_window_destroy();
   
-  main_window_save_cities();
+  log_mem("app closing");
 }
