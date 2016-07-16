@@ -50,10 +50,31 @@ void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuIndex *c
   }
 }
 
-void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
-  error_window_set_error("Hello there!");
-  error_window_show();
-  
+char *get_readable_dictation_status(DictationSessionStatus status) {
+  switch(status){
+    case DictationSessionStatusSuccess:
+      return "Success";
+    case DictationSessionStatusFailureTranscriptionRejected:
+      return "User rejected success";
+    case DictationSessionStatusFailureTranscriptionRejectedWithError:
+      return "User rejected error";
+    case DictationSessionStatusFailureSystemAborted:
+      return "Too many errors, UI gave up";
+    case DictationSessionStatusFailureNoSpeechDetected:
+      return "No speech, UI exited";
+    case DictationSessionStatusFailureConnectivityError:
+      return "No BT/internet connection";
+    case DictationSessionStatusFailureDisabled:
+      return "Voice dictation disabled";
+    case DictationSessionStatusFailureInternalError:
+      return "Internal error";
+    case DictationSessionStatusFailureRecognizerError:
+      return "Failed to transcribe speech";
+  }
+  return "Unknown";
+}
+
+void send_weather_request(char *city) {
   DictionaryIterator *iter;
   app_message_outbox_begin(&iter);
   
@@ -62,10 +83,53 @@ void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *da
     return;
   }
   
-  dict_write_cstring(iter, MESSAGE_KEY_getWeather, "Linz, AT");
+  dict_write_cstring(iter, MESSAGE_KEY_getWeather, city);
   dict_write_end(iter);
   
   app_message_outbox_send();
+}
+
+void dictation_session_callback(DictationSession *session,
+                                DictationSessionStatus status,
+                                char *transcription,
+                                void *context) {
+  switch (status) {
+    case DictationSessionStatusSuccess:
+      send_weather_request(transcription);
+      break;
+    case DictationSessionStatusFailureTranscriptionRejected:
+      /* user cancled -> ignore */
+      break;
+    default:
+      error_window_set_error(get_readable_dictation_status(status));
+      error_window_show();
+      break;
+  }
+}
+
+void launch_dictation() {
+  static char last_text[40];
+  DictationSession *session =
+    dictation_session_create(sizeof(last_text),
+                             dictation_session_callback,
+                             NULL); // context
+  if (session == NULL) {
+    APP_LOG(APP_LOG_LEVEL_ERROR, "Dictation session is null! Are you running aplite?");
+    return;
+  }
+  dictation_session_start(session);
+  // TODO: dictation session cleanup?
+}
+
+void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
+  switch (cell_index->section) {
+    case 0: break;
+    case 1: launch_dictation(); break;
+    default:
+      error_window_set_error("Unknown menu item selected");
+      error_window_show();
+      break;
+  }
 }
 
 void process_tuple(Tuple *t){
@@ -80,15 +144,6 @@ void message_inbox(DictionaryIterator *iter, void *context){
     process_tuple(t);
     t = dict_read_next(iter);
   }
-  /* if (t != NULL) {
-    process_tuple(t);
-  }
-  while (t != NULL) {
-    t = dict_read_next(iter);
-    if (t != NULL) {
-      process_tuple(t);
-    }
-  } */
 }
 
 void message_inbox_dropped(AppMessageResult reason, void *context) {

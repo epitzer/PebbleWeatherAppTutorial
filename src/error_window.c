@@ -3,7 +3,7 @@
 
 Window *errorWindow;
 Layer *errorGraphicsLayer;
-char currentErrorText[1][20]; // WAT?
+char currentErrorText[1][60]; // WAT?
 
 void error_window_set_error(char *errorText) {
   strncpy(currentErrorText[0], errorText, sizeof(currentErrorText[0])); // WAT?
