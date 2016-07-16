@@ -51,8 +51,8 @@ void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuIndex *c
 }
 
 void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
-  error_window_show("Hello there!");
-  
+  error_window_set_error("Hello there!");
+  error_window_show();
 }
 
 void setup_menu_layer(Window *window) {
