@@ -87,7 +87,7 @@ function getWeatherFromLocation(location_name) {
         if (response) {
           woeid = response.query.results.place.woeid;
           console.log("Got WOEID of " + woeid);
-          getWeatherFromWoeid(woeid);
+          getWeatherFromWoeid(woeid, location_name);
         }
       }
     }
@@ -95,7 +95,7 @@ function getWeatherFromLocation(location_name) {
   req.send(null);
 }
 
-function getWeatherFromWoeid(woeid) {
+function getWeatherFromWoeid(woeid, location_name) {
   var query = encodeURI("select item.condition from weather.forecast where woeid = " + woeid + " and u = " + (false ? "\"c\"" : "\"f\""));
   var url = "http://query.yahooapis.com/v1/public/yql?q=" + query + "&format=json";
 
@@ -123,9 +123,11 @@ function getWeatherFromWoeid(woeid) {
             fixedTemp -= 32;
             fixedTemp = Math.ceil(fixedTemp*(5/9));
           }
-        var message = {
+          var message = {
             "icon" : icon,
-            "temperature" : fixedTemp
+            "temperature" : fixedTemp,
+            "cityid" : woeid,
+            "cityname" : location_name
           };
           console.log("Sending message through WOEID " + JSON.stringify(message));
           Pebble.sendAppMessage(message);
@@ -145,11 +147,4 @@ Pebble.addEventListener("appmessage", function(e) {
   console.log("Got getWeather with value" + e.payload.getWeather);
   
   getWeatherFromLocation(e.payload.getWeather);
-  
-  /* var object = {
-    testkey: 0
-  };
-  
-  Pebble.sendAppMessage(object); */
-  
 });

@@ -1,7 +1,15 @@
 #pragma once
+#define MAX_NR_OF_CITIES 5
 
-void main_window_load(Window *window);
-void main_window_unload(Window *window);
+typedef struct City {
+  bool exists;
+  int condition; // icon
+  int temperature;
+  int id; // cityid
+  char name[1][30]; 
+} City;
+
+
 void main_window_create();
 void main_window_destroy();
 Window *main_window_get_window();

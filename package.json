@@ -12,7 +12,9 @@
         "messageKeys": [
             "icon",
             "temperature",
-            "getWeather"
+            "getWeather",
+            "cityid",
+            "cityname"
         ],
         "projectType": "native",
         "resources": {
@@ -30,7 +32,7 @@
             "aplite",
             "basalt"
         ],
-        "uuid": "71140172-00f8-4495-890a-df7b011eed4d",
+        "uuid": "e7f0427d-6ed1-49c2-9eec-cc5b4500393a",
         "watchapp": {
             "watchface": false
         }

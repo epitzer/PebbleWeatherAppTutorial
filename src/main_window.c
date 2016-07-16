@@ -2,6 +2,9 @@
 #include "main_window.h"
 #include "error_window.h"
 
+City cities[MAX_NR_OF_CITIES];
+int currentCityToWrite = -1;
+
 Window *mainWindow;
 MenuLayer *mainMenuLayer;
 
@@ -133,17 +136,41 @@ void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *da
 }
 
 void process_tuple(Tuple *t){
-  int key = t->key;
+  uint32_t key = t->key;
   int value = t->value->int32; // make sure you get the right member according to type
-  APP_LOG(APP_LOG_LEVEL_INFO, "Got key %d with value %d", key, value);
+  
+  if (key == MESSAGE_KEY_icon) {
+    cities[currentCityToWrite].condition = value;
+    
+  } else if (key == MESSAGE_KEY_temperature) {
+    cities[currentCityToWrite].temperature = value;
+    
+  } else if (key == MESSAGE_KEY_cityid) {
+    cities[currentCityToWrite].id = value;
+    
+  } else if (key == MESSAGE_KEY_cityname) {
+    strncpy(cities[currentCityToWrite].name[0],
+            t->value->cstring,
+            sizeof(cities[currentCityToWrite]));
+  }
+  APP_LOG(APP_LOG_LEVEL_INFO, "Got key %d with value %d", (int)key, value);
 }
 
 void message_inbox(DictionaryIterator *iter, void *context){
+  for (int i = 0; i<MAX_NR_OF_CITIES; i++) {
+    if (!cities[i].exists) {
+      currentCityToWrite = i;
+      break;
+    }
+  }
+  
   Tuple *t = dict_read_first(iter);
   while (t != NULL) {
     process_tuple(t);
     t = dict_read_next(iter);
   }
+  
+  cities[currentCityToWrite].exists = true;
 }
 
 void message_inbox_dropped(AppMessageResult reason, void *context) {
