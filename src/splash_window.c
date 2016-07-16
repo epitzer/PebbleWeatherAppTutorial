@@ -28,11 +28,16 @@ void splash_window_unload(Window *window) {
   text_layer_destroy(splashImageTitle);
 }
 
+void splash_window_disappear(Window *window) {
+  window_stack_remove(window, true);
+}
+
 void splash_window_create() {
   splashWindow = window_create();
   window_set_window_handlers(splashWindow, (WindowHandlers) {
     .load = splash_window_load,
-    .unload = splash_window_unload
+    .unload = splash_window_unload,
+    .disappear = splash_window_disappear
   });
 }
 
