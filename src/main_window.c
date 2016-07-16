@@ -206,12 +206,6 @@ void message_inbox(DictionaryIterator *iter, void *context){
     t = dict_read_next(iter);
   }
   
-  snprintf(currentCityToWrite.subtitle[0],
-          sizeof(currentCityToWrite.subtitle[0]),
-          "%d°, %s",
-          currentCityToWrite.temperature,
-          conditions[currentCityToWrite.condition]);
-  
   for (int i = 0; i<MAX_NR_OF_CITIES; i++) {
     if (cities[i].id == currentCityToWrite.id) {
       currentCityToWrite.exists = true;
@@ -234,6 +228,10 @@ void message_inbox(DictionaryIterator *iter, void *context){
   menu_layer_reload_data(mainMenuLayer);
   
   vibes_double_pulse();
+  
+  //light_enable(true);
+  //light_enable(false);
+  light_enable_interaction();
   
   currentCityToWrite.exists = false;
 }
