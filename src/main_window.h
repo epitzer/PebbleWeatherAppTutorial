@@ -10,6 +10,9 @@ typedef struct City {
 } City;
 
 
+int main_window_save_cities();
+int main_window_load_cities();
+  
 void main_window_create();
 void main_window_destroy();
 Window *main_window_get_window();

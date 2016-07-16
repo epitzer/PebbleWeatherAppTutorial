@@ -8,6 +8,8 @@ void launch_main_window(void *data) {
 }
 
 int main() {
+  main_window_load_cities();
+  
   splash_window_create();
   main_window_create();
   error_window_create();
@@ -19,4 +21,6 @@ int main() {
   splash_window_destroy();
   main_window_destroy();
   error_window_destroy();
+  
+  main_window_save_cities();
 }

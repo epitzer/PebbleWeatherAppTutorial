@@ -267,6 +267,22 @@ void setup_menu_layer(Window *window) {
     layer_add_child(window_layer, menu_layer_get_layer(mainMenuLayer));
 }
 
+int main_window_save_cities() {
+  int value = 0;
+  for (int i = 0; i<MAX_NR_OF_CITIES; i++) {
+    value += persist_write_data(i, &cities[i], sizeof(City));
+  }
+  return value;
+}
+
+int main_window_load_cities() {
+  int value = 0;
+  for (int i = 0; i<MAX_NR_OF_CITIES; i++) {
+    value += persist_read_data(i, &cities[i], sizeof(City));
+  }
+  return value;
+}
+
 void main_window_load(Window *window) {
   setup_menu_layer(window);
   
