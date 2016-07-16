@@ -7,6 +7,7 @@ typedef struct City {
   int temperature;
   int id; // cityid
   char name[1][30]; 
+  char subtitle[1][30];
 } City;
 
 

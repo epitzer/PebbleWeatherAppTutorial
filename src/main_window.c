@@ -6,7 +6,23 @@ Window *mainWindow;
 MenuLayer *mainMenuLayer;
 
 City cities[MAX_NR_OF_CITIES];
-int currentCityToWrite = -1;
+City currentCityToWrite;
+
+const char *conditions[] = {
+  "clear day",
+  "clear night",
+  "windy",
+  "cold",
+  "partly cloudy day",
+  "partly cloudy night",
+  "haze",
+  "one cloud",
+  "raining",
+  "snowing",
+  "cloudy",
+  "stormy",
+  "spook"
+};
 
 uint16_t menu_get_num_sections_callback(MenuLayer *menu_layer, void *data) {
   return 2;
@@ -52,14 +68,10 @@ void menu_draw_header_callback(GContext* ctx, const Layer *cell_layer, uint16_t 
 
 void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuIndex *cell_index, void *data) {
   switch (cell_index->section) {
-    case 0:
-      menu_cell_basic_draw(ctx, cell_layer, cities[cell_index->row].name[0], "nothing yet", NULL); // null icon
-//       switch (cell_index->row) {
-//         case 0:
-//           menu_cell_basic_draw(ctx, cell_layer, "Demo City", "40°C", NULL); // null icon
-//           break;
-//       }
-      break;
+    case 0: {
+      City *city = &cities[cell_index->row];
+      menu_cell_basic_draw(ctx, cell_layer, city->name[0], city->subtitle[0], NULL); // null icon
+      break; }
     case 1:
       menu_cell_basic_draw(ctx, cell_layer, "Add City", NULL, NULL);
       break;
@@ -144,12 +156,19 @@ void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *da
          City nonExistingCity = {
            .exists = false
          };
-         /* City tempCity = cities[i+1];
-         cities[i] = tempCity; */
          cities[i] = cities[i+1];
          cities[i+1] = nonExistingCity;
        }
        menu_layer_reload_data(mainMenuLayer);
+    
+       uint32_t pattern[] = {
+         50, 100, 200, 300, 400
+       };
+       VibePattern vibe = {
+         .durations = pattern,
+         .num_segments = ARRAY_LENGTH(pattern)
+       };
+       vibes_enqueue_custom_pattern(vibe);
        break;
     case 1: launch_dictation(); break;
     default:
@@ -164,38 +183,59 @@ void process_tuple(Tuple *t){
   int value = t->value->int32; // make sure you get the right member according to type
   
   if (key == MESSAGE_KEY_icon) {
-    cities[currentCityToWrite].condition = value;
+    currentCityToWrite.condition = value;
     
   } else if (key == MESSAGE_KEY_temperature) {
-    cities[currentCityToWrite].temperature = value;
+    currentCityToWrite.temperature = value;
     
   } else if (key == MESSAGE_KEY_cityid) {
-    cities[currentCityToWrite].id = value;
+    currentCityToWrite.id = value;
     
   } else if (key == MESSAGE_KEY_cityname) {
-    strncpy(cities[currentCityToWrite].name[0],
+    strncpy(currentCityToWrite.name[0],
             t->value->cstring,
-            sizeof(cities[currentCityToWrite]));
+            sizeof(currentCityToWrite.name[0]));
   }
   APP_LOG(APP_LOG_LEVEL_INFO, "Got key %d with value %d", (int)key, value);
 }
 
 void message_inbox(DictionaryIterator *iter, void *context){
-  for (int i = 0; i<MAX_NR_OF_CITIES; i++) {
-    if (!cities[i].exists) {
-      currentCityToWrite = i;
-      break;
-    }
-  }
-  
   Tuple *t = dict_read_first(iter);
   while (t != NULL) {
     process_tuple(t);
     t = dict_read_next(iter);
   }
   
-  cities[currentCityToWrite].exists = true;
+  snprintf(currentCityToWrite.subtitle[0],
+          sizeof(currentCityToWrite.subtitle[0]),
+          "%d°, %s",
+          currentCityToWrite.temperature,
+          conditions[currentCityToWrite.condition]);
+  
+  for (int i = 0; i<MAX_NR_OF_CITIES; i++) {
+    if (cities[i].id == currentCityToWrite.id) {
+      currentCityToWrite.exists = true;
+      cities[i] = currentCityToWrite;
+      break;
+    }
+  }
+  
+  if (!currentCityToWrite.exists) {
+    for (int i = 0; i<MAX_NR_OF_CITIES; i++) {
+      if (!cities[i].exists) {
+        currentCityToWrite.exists = true;
+        cities[i] = currentCityToWrite;
+        break;
+      }
+    }
+  }
+  
+  
   menu_layer_reload_data(mainMenuLayer);
+  
+  vibes_double_pulse();
+  
+  currentCityToWrite.exists = false;
 }
 
 void message_inbox_dropped(AppMessageResult reason, void *context) {
@@ -249,22 +289,35 @@ void message_inbox_dropped(AppMessageResult reason, void *context) {
    }
 }
 
+int currentlyRefreshing = 0;
+void refresh_weather() {
+  if (currentlyRefreshing < MAX_NR_OF_CITIES &&
+      cities[currentlyRefreshing].exists) {
+    send_weather_request(cities[currentlyRefreshing].name[0]);
+    currentlyRefreshing++;
+    app_timer_register(500, refresh_weather, NULL);
+  } else {
+    currentlyRefreshing = 0;
+    app_timer_register(900000, refresh_weather, NULL);
+  }
+}
+
 void setup_menu_layer(Window *window) {
 	Layer *window_layer = window_get_root_layer(window);
 
-    mainMenuLayer = menu_layer_create(GRect(0, 0, 144, 168));
-    menu_layer_set_callbacks(mainMenuLayer, NULL, (MenuLayerCallbacks){
-        .get_num_sections = menu_get_num_sections_callback,
-        .get_num_rows = menu_get_num_rows_callback,
-        .get_header_height = menu_get_header_height_callback,
-        .draw_header = menu_draw_header_callback,
-        .draw_row = menu_draw_row_callback,
-        .select_click = menu_select_callback,
-    });
+  mainMenuLayer = menu_layer_create(GRect(0, 0, 144, 168));
+  menu_layer_set_callbacks(mainMenuLayer, NULL, (MenuLayerCallbacks){
+    .get_num_sections = menu_get_num_sections_callback,
+    .get_num_rows = menu_get_num_rows_callback,
+    .get_header_height = menu_get_header_height_callback,
+    .draw_header = menu_draw_header_callback,
+    .draw_row = menu_draw_row_callback,
+    .select_click = menu_select_callback,
+  });
 
-    menu_layer_set_click_config_onto_window(mainMenuLayer, window);
+  menu_layer_set_click_config_onto_window(mainMenuLayer, window);
 
-    layer_add_child(window_layer, menu_layer_get_layer(mainMenuLayer));
+  layer_add_child(window_layer, menu_layer_get_layer(mainMenuLayer));
 }
 
 int main_window_save_cities() {
@@ -289,6 +342,8 @@ void main_window_load(Window *window) {
   app_message_register_inbox_received(message_inbox);
   app_message_register_inbox_dropped(message_inbox_dropped);
   app_message_open(256, 256);
+  
+  app_timer_register(500, refresh_weather, NULL);
 }
 
 void main_window_unload(Window *window) {
